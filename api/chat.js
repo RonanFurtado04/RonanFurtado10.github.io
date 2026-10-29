@@ -30,17 +30,29 @@ Languages: English, Hindi, and Konkani.
 For missing details, say you don't have that information and suggest contacting Ronan through his portfolio. For unrelated questions, briefly help and steer back to his work.`;
 
 export default async function handler(req, res) {
-  const allowedOrigin = 'https://ronanfurtado04.github.io';
-  const origin = req.headers.origin;
 
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Vary', 'Origin');
+const allowedOrigins = [
+  'https://ronanfurtado04.github.io'
+];
 
-  if (origin && origin !== allowedOrigin) {
-    return res.status(403).json({ error: 'Origin is not allowed.' });
-  }
+
+const origin = req.headers.origin;
+
+if (origin && !allowedOrigins.includes(origin)) {
+  return res.status(403).json({
+    error: 'Origin is not allowed.',
+    receivedOrigin: origin
+  });
+}
+
+res.setHeader(
+  'Access-Control-Allow-Origin',
+  origin || allowedOrigins[0]
+);
+res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+res.setHeader('Vary', 'Origin');
+
 
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
