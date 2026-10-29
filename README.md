@@ -1,42 +1,59 @@
-# RONAN — Three.js Portfolio
+# Ronan AI Backend
 
-A dark, minimalist, responsive portfolio inspired by the supplied visual reference. It uses a custom Three.js abstract particle sculpture as the hero visual — **no avatar and no human character**.
+Node.js + Express backend for the Three.js portfolio voice assistant. It keeps the OpenAI API key server-side and provides `POST /api/chat`.
 
-## Included
-- `index.html` — page content and sections
-- `style.css` — responsive layout, typography, dark styling and mobile navigation
-- `script.js` — interactive Three.js particle sculpture with mouse response and animation
-- `assets/` — optional folder for future project thumbnails or files
+## Requirements
+- Node.js 20+
+- An OpenAI API key with API billing/usage enabled
 
-## Run locally
-Open `index.html` in a browser, or run:
+## Local setup (macOS)
+
+```bash
+cd backend
+npm install
+cp .env.example .env
+```
+
+Edit `.env` and set `OPENAI_API_KEY` to your own key. Never paste the key into `config.js`, `assistant.js`, or any other frontend file.
+
+Start the API:
+
+```bash
+npm start
+```
+
+Check it at `http://localhost:8787/health`; it should return `{"ok":true,"service":"ronan-ai-backend"}`.
+
+In another terminal, from the website root, run:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Then visit `http://localhost:8000`.
+Open `http://localhost:8000`. The included `config.js` uses `http://localhost:8787` by default.
 
-Three.js and Google Fonts load from CDNs, so an internet connection is required for those assets.
+## Deploying the frontend + backend
 
-## Deploy to GitHub Pages
-1. Create a GitHub repository such as `ronan-threejs-portfolio`.
-2. Upload `index.html`, `style.css`, `script.js`, `README.md`, and `assets/` to the repository root.
-3. Open **Settings → Pages**.
-4. Select **Deploy from a branch**, choose `main` and `/(root)`, then save.
-5. Wait for deployment. The website URL will be similar to `https://YOUR-USERNAME.github.io/ronan-threejs-portfolio/`.
+GitHub Pages only hosts static files; it cannot run Node.js. Deploy the `backend/` directory to a Node.js host (for example, Render, Railway, Fly.io, or your own server) and configure these environment variables in that host's dashboard:
+- `OPENAI_API_KEY` — secret key, server-side only
+- `OPENAI_MODEL` — optional; default `gpt-5.5`
+- `FRONTEND_ORIGIN` — your exact published site origin, such as `https://YOUR-USERNAME.github.io`
+- `PORT` — usually provided automatically by the host
 
-To publish at `https://YOUR-USERNAME.github.io/`, the repository must be named `YOUR-USERNAME.github.io`.
+After deploying, open the host's `/health` endpoint to confirm it is running. Then edit the root `config.js` and set:
 
-## Personalize before publishing
-The portfolio has been prefilled with the resume details provided. Review these profile links before publishing:
-- LinkedIn: `https://www.linkedin.com/in/ronan-furtado-739065297/`
-- GitHub: `https://github.com/RonanFurtado04`
-- Email: `ronanfurtado2020@gmail.com`
+```js
+window.RONAN_AI_API_URL = "https://YOUR-BACKEND-DOMAIN";
+```
 
-The resume PDF is included at `assets/Ronan-Furtado.pdf`.
+Use the exact origin without a trailing slash in `FRONTEND_ORIGIN`. For a project GitHub Pages URL, the origin is still `https://YOUR-USERNAME.github.io` (the repository path is not part of the origin). Redeploy the static site after changing `config.js`.
 
-Review all project descriptions and link each project to its repository or demo when you have one.
+## Voice behavior
 
-## Notes
-This is a static site and does not use a backend or private API keys. It is suitable for GitHub Pages. The Three.js centerpiece is an abstract animated particle sculpture, not an avatar.
+- Microphone input uses the browser Web Speech API. Support varies by browser; Chrome is usually the easiest test. Browser microphone access requires HTTPS or localhost and permission from the visitor.
+- Spoken answers use browser `speechSynthesis`; voice availability varies by device and browser.
+- The backend uses the OpenAI Responses API for conversational answers, with bounded message history, request size limits, CORS allowlisting, security headers, and basic per-IP rate limiting.
+- This is voice input + generated text + browser text-to-speech, not low-latency speech-to-speech. For that, use OpenAI Realtime API with short-lived session credentials from a backend.
+
+## Cost and safety
+API calls can incur usage charges. Set usage limits/alerts in your API provider account, do not expose keys, and do not deploy the backend without a suitable abuse-control strategy for a public site.
